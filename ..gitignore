@@ -1,0 +1,17 @@
+# IDEA配置
+.idea/
+*.iml
+
+# Java编译输出
+out/
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+
+# 系统文件
+.DS_Store
+Thumbs.db
