@@ -2,7 +2,7 @@ package com.lryg.bean;
 
 public class enemy extends Character {
     public String skill;
-    public Boolean defending;
+    public Boolean defending = false;
 
     //空参
     public enemy() {

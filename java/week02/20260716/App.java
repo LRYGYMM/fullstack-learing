@@ -3,8 +3,8 @@ import com.lryg.u1.Login;
 
 public class App {
     public static void main(String[] args) {
-        FightGame fightGame = new FightGame();
-        fightGame.gameStart("Lryg");
+        Login login = new Login();
+        login.start();
 
     }
 }
