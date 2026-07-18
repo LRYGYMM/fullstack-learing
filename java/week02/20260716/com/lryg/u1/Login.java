@@ -1,10 +1,13 @@
 package com.lryg.u1;
 
+import java.awt.print.Printable;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
 import com.lryg.bean.User;
+
+import javax.xml.transform.Source;
 
 
 public class Login {
@@ -17,12 +20,13 @@ public class Login {
             System.out.println("╔════════════════════════════════╗");
             System.out.println("    🎮 欢迎来到文字格斗游戏 🎮   ");
             System.out.println("╚════════════════════════════════╝");
-            System.out.println("请选择操作：1登录 2注册 3退出");
+            System.out.println("请选择操作：1登录 2注册 3忘记密码 4退出");
             int choice = scanner.nextInt();
             switch (choice) {
                 case 1 -> login(list);
                 case 2 -> register(list);
-                case 3 -> {
+                case 3 -> forgotPassword(list);
+                case 4 -> {
                     System.out.println("谢谢你的使用");
                     System.exit(0);
                 }
@@ -51,6 +55,49 @@ public class Login {
 
     *
     * */
+    public void forgotPassword(ArrayList<User> list) {
+        Scanner scanner = new Scanner(System.in);
+        //输入用户名，查询用户名是否存在
+        //不存在:提示当前用户名未注册
+
+        while (true) {
+            System.out.println("请输入用户名：");
+            String username = scanner.next();
+            if (!contains(username, list)) {
+                System.out.println("当前用户名未注册");
+                continue; // 原return改成continue，循环重输
+            }
+            //存在:输入手机号，并验证
+            System.out.println("请输入手机号：");
+            String phone = scanner.next();
+            if (!containsPhone(phone, list)) {
+                System.out.println("当前手机号不存在，请重新输入");
+                continue; // 原return改成continue
+            }
+            int index = findIndex(username, list);
+            int index2 = findIndexByPhone(phone, list);
+            System.out.println("用户名下标：" + index);
+            System.out.println("手机号下标：" + index2);
+            //用户名手机号不匹配，重新从头输入
+            if (index != index2){
+                System.out.println("用户名和手机号不属于同一用户，请重新操作");
+                continue;
+            }
+            //手机号正确，输入新密码
+            System.out.println("请输入新密码：");
+            String password = scanner.next();
+            System.out.println("请输入新密码：");
+            String password2 = scanner.next();
+            if (!password.equals(password2)) {
+                System.out.println("两次输入的密码不一致");
+                continue; // 不return，重新输密码
+            }
+            list.get(index).setPassword(password);
+            System.out.println("修改密码成功");
+            break;
+        }
+        //修改密码成功
+    }
 
 
     //注册方法
@@ -79,6 +126,28 @@ public class Login {
             }
             user.setUsername(username);
             break;
+        }
+
+        //判断手机号
+        while (true){
+            System.out.println("请输入手机号：");
+            String phone = scanner.next();
+            if (!checkLen(11, 11, phone)) {
+                System.out.println("手机号长度必须在11位");
+                continue;
+            }
+            //只能由字母、数字组成，不能是纯数字
+            if (!checkPhone(phone)) {
+                System.out.println("手机号只能由数字组成，并且必须以1开头");
+                continue;
+            }
+            if (contains(phone, list)) {
+                System.out.println("手机号已存在");
+                continue;
+            }
+            user.setPhone(phone);
+            break;
+
         }
         //判断密码
         //长度3 ~ 8位
@@ -109,7 +178,7 @@ public class Login {
         }
 
         list.add(user);
-        System.out.println("恭喜用户：" + user.getUsername() + "，注册成功");
+        System.out.println("恭喜用户：" + user.getUsername() + "注册成功，id:" + user.getId());
     }
 
     //登录
@@ -182,6 +251,16 @@ public class Login {
         }
         return -1;
     }
+    // 根据手机号找下标
+    public int findIndexByPhone(String phone, ArrayList<User> list) {
+        for (int i = 0; i < list.size(); i++) {
+            User u = list.get(i);
+            if (u.getPhone().equals(phone)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
     //判断长度是否符合要求
     public Boolean checkLen(int minLen, int maxLen, String str) {
@@ -193,6 +272,16 @@ public class Login {
         for (int i = 0; i < list.size(); i++) {
             User u = list.get(i);
             if (u.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    //判断手机号在集合中是否存在
+    public Boolean containsPhone(String phone, ArrayList<User> list) {
+        for (int i = 0; i < list.size(); i++) {
+            User u = list.get(i);
+            if(list.get(i).getPhone().equals(phone)){
                 return true;
             }
         }
@@ -220,11 +309,18 @@ public class Login {
 
     //判断密码是否符合要求，只能由字母+数字组成，不能是纯数字
     public Boolean checkPasswd(int[] count) {
-
-
         return count[0] > 0 && count[1] > 0 && count[2] == 0;
     }
-
+    //判断手机号是否符合要求，只能由数字组成，必须以1开头
+    public Boolean checkPhone(String phone) {
+        char c = phone.charAt(0);
+        if (c != '1') {
+            return false;
+        }
+        int[] arr = getcount(phone);
+        return arr[0] == 0 && arr[1] > 0 && arr[2] == 0;
+    }
+    //获取字符串中字母、数字、其他字符的个数
     public int[] getcount(String str) {
         int charCount = 0;
         int digitCount = 0;

@@ -37,6 +37,7 @@ public class Character {
         }
     }
 
+
     public String show() {
         return  name + "[当前血量：" + HP + "，攻击力：" + attack + "，防御力：" + defense+"]";
     }

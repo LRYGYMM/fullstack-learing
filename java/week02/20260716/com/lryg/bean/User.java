@@ -5,16 +5,18 @@ public class User {
     private String username;
     private String password;
     private Boolean status;
+    private String phone;
 
     public User() {
         id = creatId();
         status = true;
     }
 
-    public User(String username, String password) {
+    public User(String username, String password, String phone) {
         id = creatId();
         this.username = username;
         this.password = password;
+        this.phone = phone;
         status = true;
 
 
@@ -57,5 +59,11 @@ public class User {
 
     public void setStatus(Boolean status) {
         this.status = status;
+    }
+    public String getPhone() {
+        return phone;
+    }
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

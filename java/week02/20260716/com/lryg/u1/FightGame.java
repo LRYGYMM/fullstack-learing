@@ -1,5 +1,6 @@
 package com.lryg.u1;
 
+import com.lryg.bean.Consumable;
 import com.lryg.bean.Herocharacter;
 import com.lryg.bean.enemy;
 
@@ -9,6 +10,15 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class FightGame {
+
+    private static final Consumable[] CONSUMABLES = {
+            new Consumable("桃子", 10),
+            new Consumable("煎蛋", 20),
+            new Consumable("花酿鸡", 30),
+            new Consumable("黑背鲈鱼", 40),
+            new Consumable("白玉汤", 50)
+    };
+
     public void gameStart(String username) {
         System.out.println("╔═════════════════════════════╗");
         System.out.println(" 🎮" + username + " 欢迎来到文字格斗游戏 🎮");
@@ -54,9 +64,10 @@ public class FightGame {
             int round = 1;
             while (player.isAlive()) {
                 System.out.println("═══════════════════════════════════════");
-                System.out.println("⚔️ 第" + count + " 回合开始！");
+                System.out.println("⚔️ 第" + round + " 回合开始！");
                 //打印血条
                 System.out.println(getBloodBar(player.name, player.HP, player.maxHP));
+                System.out.println(getBloodBar(player.name, player.blueHP, player.MaxblueHP));
                 System.out.println(getBloodBar(en.name, en.HP, en.maxHP));
 
                 //玩家回合：
@@ -72,8 +83,10 @@ public class FightGame {
                 //敌人回合：
                 enemyTurn(en, player);
                 if (!player.isAlive()) {
-                    //💀 你被 敏捷刺客 击败了！
                     System.out.println("💀 你被 " + en.name + " 击败了！");
+                    Random tauntRandom = new Random();
+                    String taunt = TAUNTS[tauntRandom.nextInt(TAUNTS.length)];
+                    System.out.println("😈 " + en.name + "：" + taunt);
                     break;
                 }
                 //回合结束，回合数加一
@@ -81,14 +94,29 @@ public class FightGame {
 
 
             }
+
             if (player.isAlive()){
                 //玩家回血
                 int reward = r.nextInt(21)+20 ;
                 player.heal(reward);
                 System.out.println("💚 战斗结束！你恢复了 " + reward + " 点生命值");
+
+                //胜利回复blueHP（0~30% MaxblueHP）
+                int blueRecover = (int)(player.MaxblueHP * 0.3 * r.nextDouble());
+                player.blueHP += blueRecover;
+                if (player.blueHP > player.MaxblueHP) {
+                    player.blueHP = 10;
+                }
+                System.out.println("💙 战斗结束！你恢复了 " + blueRecover + " 点MP");
+
+                //道具掉落（30%几率）
+                dropItem(player, r);
+
                 System.out.println("🏆 当前胜场: " + wins);
                 System.out.println("═══════════════════════════════════════");
             }
+
+
             //成长系统
             if(player.isAlive()&&wins>0&&wins%3==0) {
                 System.out.println("🌟 恭喜你，获得了属性提升！🎉");
@@ -179,15 +207,33 @@ public class FightGame {
         int barLength = 20;
         int filledLength = (int) (HP * 1.0 * barLength / maxHP);
         StringBuilder sb = new StringBuilder();
-        sb.append(name).append(": ");
-        for (int i = 0; i < barLength; i++) {
-            if (i < filledLength) {
-                sb.append("█");
-            } else {
-                sb.append(" ");
+        int nameLength = name.length();
+        if (HP > 10) {
+            sb.append(name).append(": [");
+            for (int i = 0; i < barLength; i++) {
+                if (i < filledLength) {
+                    sb.append("█");
+                } else {
+                    sb.append(" ");
+                }
             }
+            sb.append("] ").append(HP).append("/").append(maxHP).append(" HP");
         }
-        sb.append("] ").append(HP).append("/").append(maxHP).append(" HP");
+        else
+        {
+            for (int i = 0; i <nameLength+2; i++){
+            sb.append(" ");
+            }
+            sb.append("[");
+            for (int i = 0; i < barLength; i++) {
+                if (i < filledLength) {
+                    sb.append("█");
+                } else {
+                    sb.append(" ");
+                }
+            }
+            sb.append("] ").append(HP).append("/").append(maxHP).append(" MP");
+        }
         return sb.toString();
     }
 
@@ -225,7 +271,8 @@ public class FightGame {
                 100 + points[0] * 10,
                 10 + points[1] * 2,
                 points[2],
-                null
+                10,
+                new ArrayList<String>()
         );
         player.skills.add("普通攻击");
         player.skills.add("强力一击");
@@ -235,52 +282,82 @@ public class FightGame {
 
     //玩家回合
     public void playerTurn(Herocharacter player, enemy en) {
-        System.out.println("===== 你的回合 =====");
-        System.out.println("1. 普通攻击");
-        System.out.println("2. 强力一击 (消耗10HP)");
-        System.out.println("3. 生命汲取 (消耗10HP，恢复生命)");
-        System.out.println("选择行动 (1-3):");
         Scanner sc = new Scanner(System.in);
-        String choice = sc.next();
-        switch (choice) {
-            default:
-                System.out.println("无效输入！默认选择普通攻击。");
-            case "1":
-                System.out.println("你使用了普通攻击！");
-                int damage = calculateDamage(player.attack, en.defense);
-                System.out.println("⚔️ 你对 " + en.name + " 使用了普通攻击，造成 " + damage + " 点伤害！");
-                en.takeDamage(damage);
-                break;
-            case "2":
-                if (player.HP >= 10) {
-                    System.out.println("你使用了强力一击！");
-                    player.takeDamage(10);
-                    int damage1 = calculateDamage((int) (player.attack * 1.5), en.defense);
-                    System.out.println("💥 消耗10HP，你对 " + en.name + " 使用了强力一击，造成 " + damage1 + " 点伤害！");
-                    en.takeDamage(damage1);
-                } else {
-                    System.out.println("你的HP不足10，无法使用强力一击！");
-                }
-                break;
-            case "3":
-                Random random = new Random();
-                if (player.HP >= 10) {
-                    System.out.println("你使用了生命汲取！");
-                    player.takeDamage(10);
-                    int damage2 = calculateDamage((int) (player.attack * 1.5), en.defense);
-                    System.out.println("💥 消耗10HP，你对 " + en.name + " 使用了生命汲取，造成 " + damage2 + " 点伤害！");
-                    en.takeDamage(damage2);
-                    int healhp = random.nextInt(21);
-                    player.heal(healhp);
-                    System.out.println("💚 你恢复了 " + healhp + " 点生命！");
-                } else {
-                    System.out.println("你的HP不足10，无法使用生命汲取！");
-                }
-                break;
+        while (true) {
+            System.out.println("===== 你的回合 =====");
+            System.out.println("1. 普通攻击");
+            System.out.println("2. 强力一击 (消耗2BP)");
+            System.out.println("3. 生命汲取 (消耗3BP，恢复生命)");
+            System.out.println("4. 使用道具");
+            System.out.println("选择行动 (1-4):");
+            String choice = sc.next();
+            switch (choice) {
+                case "1":
+                    System.out.println("你使用了普通攻击！");
+                    int damage = calculateDamage(player.attack, en.defense);
+                    System.out.println("⚔️ 你对 " + en.name + " 使用了普通攻击，造成 " + damage + " 点伤害！");
+                    en.takeDamage(damage);
+                    return;
+                case "2":
+                    if (player.blueHP >= 2) {
+                        System.out.println("你使用了强力一击！");
+                        player.Mp(2);
+                        int damage1 = calculateDamage((int) (player.attack * 1.5), en.defense);
+                        System.out.println("💥 消耗2MP，你对 " + en.name + " 使用了强力一击，造成 " + damage1 + " 点伤害！");
+                        en.takeDamage(damage1);
+                        return;
+                    } else {
+                        System.out.println("你的MP不足2，无法使用强力一击！");
+                        continue;
+                    }
 
 
+                case "3":
+                    Random random = new Random();
+                    if (player.blueHP >= 3) {
+                        System.out.println("你使用了生命汲取！");
+                        player.Mp(3);
+                        int damage2 = calculateDamage((int) (player.attack * 1.5), en.defense);
+                        System.out.println("💥 消耗3MP，你对 " + en.name + " 使用了生命汲取，造成 " + damage2 + " 点伤害！");
+                        en.takeDamage(damage2);
+                        int healhp = random.nextInt(21);
+                        player.heal(healhp);
+                        System.out.println("💚 你恢复了 " + healhp + " 点生命！");
+                        return;
+                    } else {
+                        System.out.println("你的MP不足3，无法使用生命汲取！");
+                        continue;
+                    }
+
+                case "4":
+                    if (player.packageList.isEmpty()) {
+                        System.out.println("🎒 背包里没有道具！");
+                        continue;
+                    }
+                    player.showPackage();
+                    System.out.println("请选择要使用的道具编号（0取消）：");
+                    int itemChoice = sc.nextInt();
+                    if (itemChoice == 0) {
+                        continue;
+                    }
+                    if (player.useConsumable(itemChoice - 1)) {
+                        return;
+                    } else {
+                        System.out.println("无效的道具编号！");
+                        continue;
+                    }
+
+            }
         }
 
+    }
+
+    private void dropItem(Herocharacter player, Random r) {
+        if (r.nextInt(100) < 30) {
+            Consumable item = CONSUMABLES[r.nextInt(CONSUMABLES.length)];
+            player.packageList.add(new Consumable(item.getName(), item.getNum()));
+            System.out.println("🎁 你获得了道具：" + item.getName() + "（生命+" + item.getNum() + "）");
+        }
     }
 
     public int calculateDamage(int attack, int defense) {
@@ -290,6 +367,29 @@ public class FightGame {
         }
         return damage;
     }
+    private static final String[] TAUNTS = {
+            "就这？我还以为你有多厉害呢！",
+            "回去再练练吧，弱者！",
+            "你连给我挠痒痒都不够格！",
+            "哈哈哈，太弱了！我还没出力你就倒下了！",
+            "下次带点实力再来吧，别浪费我的时间！",
+            "你这点本事也敢来挑战我？",
+            "我站在这里让你打，你都打不动！",
+            "滚回去喝奶吧，小屁孩！",
+            "我一只脚都能赢你，信不信？",
+            "就你这攻击力，给我搓澡呢？",
+            "认命吧，你永远不可能赢我！",
+            "你妈没告诉你别出来丢人吗？",
+            "我还没热身，你就已经输了！",
+            "你是在给我加经验值吗？谢谢啊！",
+            "废物就是废物，换个名字还是一样的！",
+            "我建议你去打史莱姆，别来送死了！",
+            "你这水平，我奶奶都能打赢你！",
+            "别灰心，至少你勇气可嘉……才怪！",
+            "你输的样子真狼狈！",
+            "这就是你的全力？可笑！"
+    };
+
 
 }
 //用来计算伤害
