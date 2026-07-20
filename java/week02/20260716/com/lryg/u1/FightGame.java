@@ -4,7 +4,6 @@ import com.lryg.bean.Consumable;
 import com.lryg.bean.Herocharacter;
 import com.lryg.bean.enemy;
 
-import javax.imageio.plugins.tiff.ExifTIFFTagSet;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -380,7 +379,7 @@ public class FightGame {
             "就你这攻击力，给我搓澡呢？",
             "认命吧，你永远不可能赢我！",
             "你妈没告诉你别出来丢人吗？",
-            "我还没热身，你就已经输了！",
+            "我还没热身，你就输了！",
             "你是在给我加经验值吗？谢谢啊！",
             "废物就是废物，换个名字还是一样的！",
             "我建议你去打史莱姆，别来送死了！",

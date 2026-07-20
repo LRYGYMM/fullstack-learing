@@ -1,13 +1,10 @@
 package com.lryg.u1;
 
-import java.awt.print.Printable;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
 import com.lryg.bean.User;
-
-import javax.xml.transform.Source;
 
 
 public class Login {
